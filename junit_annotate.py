@@ -9,7 +9,7 @@ def parse_junit(path='junit-result.xml'):
 
     try:
         tree = ET.parse(path)
-        testcases = tree.iterfind('testcase')
+        testcases = tree.iter('testcase')
 
         for testcase in testcases:
             classname = testcase.get('classname')
@@ -45,7 +45,6 @@ def parse_junit(path='junit-result.xml'):
             })
     except Exception as e:
         print(e)
-    print(report)
     return report
 
 
@@ -83,7 +82,7 @@ def generate_html(path, output='annotate.md'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, default='', help='path to artifacts folder')
+    parser.add_argument('--path', type=str, default='.', help='path to artifacts folder')
     args = parser.parse_args()
     if args.path is None:
         raise Exception('path must be supplied')
