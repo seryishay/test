@@ -86,5 +86,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.path is None:
         raise Exception('path must be supplied')
-
+    print(f'path={args.path}')
     print(generate_html(args.path))
