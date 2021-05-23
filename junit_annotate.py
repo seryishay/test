@@ -17,22 +17,27 @@ def parse_junit(path='junit-result.xml'):
             time = testcase.get('time')
             file = testcase.get('file')
             line = testcase.get('line')
-            error_string = testcase.find('error')
-            failure_string = testcase.find('failure')
-            skipped_string = testcase.find('skipped')
+            error = testcase.find('error')
+            failure = testcase.find('failure')
+            skipped = testcase.find('skipped')
 
-            if skipped_string is not None:
+            if skipped is not None:
                 result = 'SKIPPED'
-                message = skipped_string.text
-            elif error_string is not None:
+                text = skipped.text
+                message = skipped.attrib.get('message')
+            elif error is not None:
                 result = 'ERRORED'
-                message = error_string.text
-            elif failure_string is not None:
+                text = error.text
+                message = error.attrib.get('message')
+            elif failure is not None:
                 result = 'FAILED'
-                message = failure_string.text
+                text = failure.text
+                message = failure.attrib.get('message')
+
             else:
                 result = 'PASSED'
                 message = None
+                text = None
 
             report.append({
                 'name': name,
@@ -41,7 +46,8 @@ def parse_junit(path='junit-result.xml'):
                 'file': file,
                 'line': line,
                 'result': result,
-                'message': message
+                'message': message,
+                'text': text
             })
     except Exception as e:
         print(e)
@@ -67,7 +73,9 @@ def generate_html(path, output='annotate.md'):
     def testcase_to_html(testcase):
         html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</code></summary>\n'
         if testcase.get("message") is not None:
-            html += f'\t<p>{testcase.get("message")}</p>\n'
+            html += f'\t<p>{testcase.get("message")}</p>\n\n'
+        if testcase.get("text") is not None:
+            html += f'<pre><code>{testcase.get("text")}</code></pre>\n\n'
         html += '</details>\n'
         return html
 
