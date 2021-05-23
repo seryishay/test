@@ -45,6 +45,7 @@ def parse_junit(path='junit-result.xml'):
             })
     except Exception as e:
         print(e)
+    print(report)
     return report
 
 
