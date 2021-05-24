@@ -71,13 +71,17 @@ def generate_html(path, output='annotate.md'):
     html = ''
 
     def testcase_to_html(testcase):
-        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</code></summary>\n'
+        color = 'green' if testcase.get("result") == 'PASSED' else 'red'
+        html = f'<details><summary><code style="color:{color};">{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</code></summary>\n'
         if testcase.get("message") is not None:
             html += f'\t<p>{testcase.get("message")}</p>\n\n'
         if testcase.get("text") is not None:
             html += f'<pre><code>{testcase.get("text")}</code></pre>\n\n'
         html += '</details>\n'
         return html
+
+    failed = [test for test in parsed_xml if test.get('result') != 'PASSED']
+    html += f'{len(failed)}/{len(parsed_xml)} Failed\n\n'
 
     for testcase in parsed_xml:
         html += testcase_to_html(testcase)
