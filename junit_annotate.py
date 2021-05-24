@@ -72,7 +72,7 @@ def generate_html(path, output='annotate.md'):
 
     def testcase_to_html(testcase):
         color = 'green' if testcase.get("result") == 'PASSED' else 'red'
-        html = f'<details><summary><code style="color:{color};">{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</code></summary>\n'
+        html = f'<details><summary><code><style="color:{color};">{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</style></code></summary>\n'
         if testcase.get("message") is not None:
             html += f'\t<p>{testcase.get("message")}</p>\n\n'
         if testcase.get("text") is not None:
