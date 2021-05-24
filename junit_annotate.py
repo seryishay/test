@@ -3,6 +3,9 @@ import os
 import fnmatch
 import argparse
 
+ANNOTATE_FAILED_FILENAME = 'annotate_fail.md'
+ANNOTATE_PASSED_FILENAME = 'annotate_passed.md'
+
 def parse_junit(path='junit-result.xml'):
     print(f'Parsing Junit XML: {path}')
     report = []
@@ -66,13 +69,12 @@ def batch_parse_junit(path):
     return results
 
 
-def generate_html(path, output='annotate.md'):
+def generate_html(path):
     parsed_xml = batch_parse_junit(path)
-    html = ''
 
     def testcase_to_html(testcase):
-        color = 'green' if testcase.get("result") == 'PASSED' else 'red'
-        html = f'<details><summary><code><style="color:{color};">{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</style></code></summary>\n'
+        # color = 'green' if testcase.get("result") == 'PASSED' else 'red'
+        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}/style></code></summary>\n'
         if testcase.get("message") is not None:
             html += f'\t<p>{testcase.get("message")}</p>\n\n'
         if testcase.get("text") is not None:
@@ -81,15 +83,23 @@ def generate_html(path, output='annotate.md'):
         return html
 
     failed = [test for test in parsed_xml if test.get('result') != 'PASSED']
-    html += f'{len(failed)}/{len(parsed_xml)} Failed\n\n'
+    passed = [test for test in parsed_xml if test.get('result') == 'PASSED']
+    failed_file = f'{len(failed)}/{len(parsed_xml)} Failed\n\n'
+    passed_file = f'{len(passed)}/{len(parsed_xml)} Passed\n\n'
 
-    for testcase in parsed_xml:
-        html += testcase_to_html(testcase)
+    for testcase in failed:
+        failed_file += testcase_to_html(testcase)
 
-    with open(output, 'w') as f:
-        f.write(html)
+    with open(ANNOTATE_FAILED_FILENAME, 'w') as f:
+        f.write(failed_file)
 
-    return html
+    for testcase in passed:
+        passed_file += testcase_to_html(testcase)
+
+    with open(ANNOTATE_PASSED_FILENAME, 'w') as f:
+        f.write(passed_file)
+
+    return failed_file, passed_file
 
 
 if __name__ == '__main__':
