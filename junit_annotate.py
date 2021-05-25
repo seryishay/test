@@ -73,10 +73,13 @@ def generate_html(path):
     parsed_xml = batch_parse_junit(path)
 
     def testcase_to_html(testcase):
-        # color = 'green' if testcase.get("result") == 'PASSED' else 'red'
-        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")} {testcase.get("result")}</code></summary>\n'
+        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")}</code></summary>\n'
+        if testcase.get("result") is not None:
+            html += f'\t<p>Result: {testcase.get("result")}</p>\n'
+        if testcase.get("time") is not None:
+            html += f'\t<p>Runtime: {testcase.get("time")}</p>\n'
         if testcase.get("message") is not None:
-            html += f'\t<p>{testcase.get("message")}</p>\n\n'
+            html += f'\t<p>Message: {testcase.get("message")}</p>\n\n'
         if testcase.get("text") is not None:
             html += f'<pre><code>{testcase.get("text")}</code></pre>\n\n'
         html += '</details>\n'
