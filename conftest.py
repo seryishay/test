@@ -7,7 +7,7 @@ def pytest_addoption(parser):
 def pytest_generate_tests(metafunc):
     if "param1" in metafunc.fixturenames:
         if metafunc.config.getoption("all"):
-            end = PARAM_MAX * 2
+            end = PARAM_MAX - 1
         else:
             end = 1
         metafunc.parametrize("param1", range(end))
