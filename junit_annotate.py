@@ -1,12 +1,9 @@
 import xml.etree.ElementTree as ET
 import os
 import fnmatch
-import argparse
 
-ANNOTATE_FAILED_FILENAME = 'annotate_fail.md'
-ANNOTATE_PASSED_FILENAME = 'annotate_passed.md'
 
-def parse_junit(path='junit-result.xml'):
+def parse_junit(path):
     print(f'Parsing Junit XML: {path}')
     report = []
 
@@ -36,7 +33,6 @@ def parse_junit(path='junit-result.xml'):
                 result = 'FAILED'
                 text = failure.text
                 message = failure.attrib.get('message')
-
             else:
                 result = 'PASSED'
                 message = None
@@ -69,7 +65,7 @@ def batch_parse_junit(path):
     return results
 
 
-def generate_html(path):
+def generate_html(path, artifact_base_url, failed_filename, passed_filename):
     parsed_xml = batch_parse_junit(path)
 
     def testcase_to_html(testcase):
@@ -77,7 +73,7 @@ def generate_html(path):
         if testcase.get("result") is not None:
             html += f'\t<p>Result: {testcase.get("result")}</p>\n'
         if testcase.get("time") is not None:
-            html += f'\t<p>Runtime: {testcase.get("time")}</p>\n'
+            html += f'\t<p>Runtime: {float(testcase.get("time")):0.2f}</p>\n'
         if testcase.get("message") is not None:
             html += f'\t<p>Message: {testcase.get("message")}</p>\n\n'
         if testcase.get("text") is not None:
@@ -93,23 +89,27 @@ def generate_html(path):
     for testcase in failed:
         failed_file += testcase_to_html(testcase)
 
-    with open(ANNOTATE_FAILED_FILENAME, 'w') as f:
+    with open(failed_filename, 'w') as f:
         f.write(failed_file)
 
     for testcase in passed:
         passed_file += testcase_to_html(testcase)
 
-    with open(ANNOTATE_PASSED_FILENAME, 'w') as f:
+    with open(passed_filename, 'w') as f:
         f.write(passed_file)
 
-    return failed_file, passed_file
+    print(failed_file, passed_file)
+    return len(failed) == 0
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, default='.', help='path to artifacts folder')
-    args = parser.parse_args()
-    if args.path is None:
-        raise Exception('path must be supplied')
-    print(f'path={args.path}')
-    print(generate_html(args.path))
+
+    path = os.environ.get('ARTIFACTS_DIR', './artifacts')
+    buildkite_job_id = os.environ.get('BUILDKITE_JOB_ID')
+    artifact_base_url = f'https://buildkite-managedartifactsbucket.s3.amazonaws.com/{buildkite_job_id}/artifacts/'
+    failed_filename = os.environ.get('ANNOTATE_FAILED_FILENAME', 'annotate_fail.md')
+    passed_filename = os.environ.get('ANNOTATE_PASSED_FILENAME', 'annotate_passed.md')
+    print(path, artifact_base_url, failed_filename, passed_filename)
+
+    exit_result = generate_html(path, artifact_base_url, failed_filename, passed_filename)
+    exit(0 if exit_result else 1)
