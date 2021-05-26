@@ -1,4 +1,4 @@
-pip3 install pytest
+sudo pip3 install pytest
 python3 -m pytest --all -v --junitxml="/tmp/junit-result.xml"
 
 export ANNOTATE_FAILED_FILENAME=annotate_fail.md
