@@ -65,41 +65,37 @@ def batch_parse_junit(path):
     return results
 
 
-def generate_html(path, artifact_base_url, failed_filename, passed_filename):
+def generate_html(path, artifact_base_url, failed_filename, passed_filename, skipped_filename):
     parsed_xml = batch_parse_junit(path)
 
     def testcase_to_html(testcase):
-        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")}</code></summary>\n'
+        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")}</code></summary>'
         if testcase.get("result") is not None:
-            html += f'\t<p>Result: {testcase.get("result")}</p>\n'
+            html += f'<p>Result: {testcase.get("result")}</p>'
         if testcase.get("time") is not None:
-            html += f'\t<p>Runtime: {float(testcase.get("time")):0.2f}</p>\n'
+            html += f'<p>Runtime: {float(testcase.get("time")):0.2f}</p>n'
         if testcase.get("message") is not None:
-            html += f'\t<p>Message: {testcase.get("message")}</p>\n\n'
-        if testcase.get("text") is not None:
-            html += f'<pre><code>{testcase.get("text")}</code></pre>\n\n'
+            html += f't<p>Message: {testcase.get("message")}</p>'
+        if testcase.get("text") is not None and testcase.get("result") in ['FAILED', 'ERRORED']:
+            html += f'<pre><code>{testcase.get("text")}</code></pre>'
         html += '</details>\n'
         return html
 
-    failed = [test for test in parsed_xml if test.get('result') != 'PASSED']
-    passed = [test for test in parsed_xml if test.get('result') == 'PASSED']
-    failed_file = f'{len(failed)}/{len(parsed_xml)} Failed\n\n'
-    passed_file = f'{len(passed)}/{len(parsed_xml)} Passed\n\n'
+    def filter_test_result(test_result, filename):
+        filtered_tests = [test for test in parsed_xml if test.get('result') in test_result]
+        file_data = f'{len(filtered_tests)}/{len(parsed_xml)} {"".join(test_result)}\n\n'
+        for testcase in filtered_tests:
+            file_data += testcase_to_html(testcase)
+        with open(filename, 'w') as f:
+            f.write(file_data)
+        print(filename, file_data)
+        return len(filtered_tests)
 
-    for testcase in failed:
-        failed_file += testcase_to_html(testcase)
+    failed_len = filter_test_result(test_result=['FAILED'], filename=failed_filename)
+    passed_len = filter_test_result(test_result=['PASSED'], filename=passed_filename)
+    skipped_len = filter_test_result(test_result=['SKIPPED'], filename=skipped_filename)
 
-    with open(failed_filename, 'w') as f:
-        f.write(failed_file)
-
-    for testcase in passed:
-        passed_file += testcase_to_html(testcase)
-
-    with open(passed_filename, 'w') as f:
-        f.write(passed_file)
-
-    print(failed_file, passed_file)
-    return len(failed) == 0
+    return failed_len == 0
 
 
 if __name__ == '__main__':
@@ -109,7 +105,8 @@ if __name__ == '__main__':
     artifact_base_url = f'https://buildkite-managedartifactsbucket.s3.amazonaws.com/{buildkite_job_id}/artifacts/'
     failed_filename = os.environ.get('ANNOTATE_FAILED_FILENAME', 'annotate_fail.md')
     passed_filename = os.environ.get('ANNOTATE_PASSED_FILENAME', 'annotate_passed.md')
-    print(path, artifact_base_url, failed_filename, passed_filename)
+    skipped_filename = os.environ.get('ANNOTATE_SKIPPED_FILENAME', 'annotate_skipped.md')
+    print(path, artifact_base_url, failed_filename, passed_filename, skipped_filename)
 
-    exit_result = generate_html(path, artifact_base_url, failed_filename, passed_filename)
+    exit_result = generate_html(path, artifact_base_url, failed_filename, passed_filename, skipped_filename)
     exit(0 if exit_result else 1)
