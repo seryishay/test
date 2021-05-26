@@ -88,7 +88,7 @@ def generate_html(path, artifact_base_url, failed_filename, passed_filename, ski
             file_data += testcase_to_html(testcase)
         with open(filename, 'w') as f:
             f.write(file_data)
-        print(filename, file_data)
+        print(filename, os.path.getsize(filename), file_data)
         return len(filtered_tests)
 
     failed_len = filter_test_result(test_result=['FAILED'], filename=failed_filename)
