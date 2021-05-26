@@ -73,7 +73,7 @@ def generate_html(path, artifact_base_url, failed_filename, passed_filename, ski
         if testcase.get("result") is not None:
             html += f'<p>Result: {testcase.get("result")}</p>'
         if testcase.get("time") is not None:
-            html += f'<p>Runtime: {float(testcase.get("time")):0.2f}</p>n'
+            html += f'<p>Runtime: {float(testcase.get("time")):0.2f}</p>'
         if testcase.get("message") is not None:
             html += f't<p>Message: {testcase.get("message")}</p>'
         if testcase.get("text") is not None and testcase.get("result") in ['FAILED', 'ERRORED']:
