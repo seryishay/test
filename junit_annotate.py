@@ -69,7 +69,7 @@ def generate_html(path, artifact_base_url, failed_filename, passed_filename, ski
     parsed_xml = batch_parse_junit(path)
 
     def testcase_to_html(testcase):
-        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")}</code></summary>'
+        html = f'<details><summary><code>{testcase.get("name")} in {testcase.get("classname")}</code></summary>\n\n'
         if testcase.get("result") is not None:
             html += f'<p>Result: {testcase.get("result")}</p>'
         if testcase.get("time") is not None:
@@ -77,7 +77,7 @@ def generate_html(path, artifact_base_url, failed_filename, passed_filename, ski
         if testcase.get("message") is not None:
             html += f'<p>Message: {testcase.get("message")}</p>'
         if testcase.get("text") is not None and testcase.get("result") in ['FAILED', 'ERRORED']:
-            html += f'\n<pre><code>{testcase.get("text")}</code></pre>\n'
+            html += f'\n\n<pre><code>{testcase.get("text")}</code></pre>\n\n'
         html += '</details>\n'
         return html
 
